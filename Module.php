@@ -78,7 +78,6 @@ class Module implements
 	public function getViewHelperConfig()
 	{
 		return array(
-		/*
 			'factories' => array(
 				'getLanguage' => function($helperPluginManager) {
 					$serviceLocator = $helperPluginManager->getServiceLocator();
@@ -87,7 +86,6 @@ class Module implements
 					return $viewHelper;
 				},
 			)
-		*/
 		);
 	}
 }

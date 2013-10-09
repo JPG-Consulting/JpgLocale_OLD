@@ -40,10 +40,16 @@ class GetLanguage extends AbstractHelper implements ServiceLocatorAwareInterface
 	public function __invoke()
 	{
 		if (empty($this->language)) {
-			$locale = $this->serviceLocator->get('jpglocale_listener')->getLocale();
+			$sm = $this->serviceLocator;
+			if ($sm instanceof \Zend\View\HelperPluginManager) {
+				$sm = $sm->getServiceLocator();
+			}
+			$locale = $sm->get('jpglocale_listener')->getLocale();
+			$locale = $locale->getLocale();
 			if (extension_loaded('intl')) {
 				$this->language = \Locale::getPrimaryLanguage($locale);
 			} else {
+				
 				$locale = preg_replace('/\_/', '-', $locale);
 				$locale = explode('-', $locale, 2);
 				$this->language = $locale[0];
