@@ -26,12 +26,12 @@ namespace JpgLocale\Handler;
 
 use Zend\Mvc\MvcEvent;
 
-class Query implements HandlerInterface
+class Query extends AbstractHandler
 {
 
 	public function detect(MvcEvent $e)
 	{
-		$locale = $e->getRequest()->getQuery()->get('locale', null);
+		$locale = $e->getRequest()->getQuery()->get($this->param, null);
 		return $locale;
 	}
 	

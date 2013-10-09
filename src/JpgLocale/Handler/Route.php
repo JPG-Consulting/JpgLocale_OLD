@@ -26,12 +26,14 @@ namespace JpgLocale\Handler;
 
 use Zend\Mvc\MvcEvent;
 
-
-interface HandlerInterface
+class Subdomain extends AbstractHandler
 {
+	public function detect(MvcEvent $e)
+	{
+		$routeMatch = $e->getRouteMatch();
 
-	public function detect(MvcEvent $e);
-	
-	public function setOptions( $options = array());
+        if (!$routeMatch) return null;
+        return $routeMatch->getParam($this->param);
+	}
 	
 }

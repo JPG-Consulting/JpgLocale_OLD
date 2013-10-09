@@ -102,18 +102,33 @@ class LocaleListener implements ListenerAggregateInterface
     {
     	if ($handler instanceof \JpgLocale\Handler\HandlerInterface) {
     		$this->handlers[] = $handler;
+    		return $this;
     	} elseif (is_string($handler)) {
-	    	if (strpos('\\', $handler) === false) {
-				$handlerObj = 'JpgLocale\\Handler\\' . $handler;
-			} else {
-				$handlerObj = $handler;
-			}
+    		$handler = array('type' => $handler);
+    	} elseif ($handler instanceof Traversable) {
+			$handler = ArrayUtils::iteratorToArray($handler);
+		} elseif (!is_array($handler)) {
+			throw new Exception\InvalidArgumentException('Handler must be an array, string or Traversable object');
+		}
+
+		if (!isset($handler['type'])) {
+			throw new Exception\InvalidArgumentException('Missing "type" option');
+		}
+		
+		if (strpos('\\', $handler['type']) === false) {
+			$handlerObj = 'JpgLocale\\Handler\\' . $handler['type'];
+		} else {
+			$handlerObj = $handler['type'];
+		}
 			
-			$this->handlers[] = new $handlerObj();
-    	} else {
-    		// TODO: throw exception
-    	}
-    	
+		$handlerObj = new $handlerObj();
+		
+		if (isset($handler['options'])) {
+			$handlerObj->setOptions( $handler['options'] );			
+		}
+		
+		$this->handlers[] = $handlerObj;
+		
     	return $this;
     }
     

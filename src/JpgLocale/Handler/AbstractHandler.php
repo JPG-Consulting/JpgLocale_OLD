@@ -22,29 +22,25 @@
  * @copyright Copyright (c) 2013 Juan Pedro Gonzalez Gutierrez (http://www.jpg-consulting.com)
  * @license http://www.gnu.org/licenses/gpl-2.0.html GPLv2 License
  */
-namespace JpgLocale\Service;
+namespace JpgLocale\Handler;
 
-use Zend\ServiceManager\FactoryInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
-
-class AdapterFactory implements FactoryInterface
+abstract class AbstractHandler implements HandlerInterface
 {
+	/**
+	 * Parameter name used to detect locale
+	 * 
+	 * @var string
+	 */
+	protected $param = 'locale';
 
-	public function createService(ServiceLocatorInterface $serviceLocator)
+	public function setOptions( $options = array())
 	{
-		$config = $serviceLocator->get('Config');
-		$config = isset($config['jpg-locale']) ? $config['jpg-locale'] : array();
-
-		$adapter = isset($config['adapter']) ? $config[$adapter] : 'Config';
-		if (strpos('\\', $adapter) === false) {
-			$adapter = 'JpgLocale\\Adapter\\' . $adapter;
-		}
-		$adapter = new $adapter();
-		
-		if (method_exists($adapter, 'setModuleConfig')) {
-			$adapter->setModuleConfig($config);
-		}
-		
-		return $adapter;
+		if (isset($options['param'])) $this->setParam($options['param']);
+	}
+	
+	public function setParam( $param )
+	{
+		$this->param = $param;
+		return $this;
 	}
 }

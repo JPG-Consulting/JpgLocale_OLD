@@ -24,6 +24,29 @@ Currently we've got the following handlers:
 
 Just set the ones you wish to use. I really can't find a reason for having several handlers, but I left it up to you to add multiple handlers. 
 
+The following example adds the `Query` and `Subdomain` handlers
+
+    ...
+    'handlers' => array(
+        'Query',
+		'Subdomain'
+    )
+    ...
+
+By default the parameter searched in the `Query` handler is _locale_. Handlers can be tweaked with otions. For example, if you prefere to use _lang_ you could set it as follows:
+
+    ...
+    'handlers' => array(
+        array(
+            'type'    => 'Query',
+            'options' => array (
+                'param' => 'lang'
+            ),
+        ),
+		'Subdomain'
+    )
+    ...
+
 ### Adapters
 Currently there is only one adapter:
 
