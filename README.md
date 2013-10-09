@@ -85,7 +85,6 @@ If `english_name` and/or `native_name` are not set the _INTL_ extension will try
 
 ## TODO
 
-- Language view helper
 - Route handler
 - cTLD handler
 - Database Adapter
