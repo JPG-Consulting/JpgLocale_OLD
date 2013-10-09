@@ -47,7 +47,7 @@ class Config implements AdapterInterface
 			switch ($option)
 			{
 				case 'default':
-					$this->setDefaultLocale($option['default']);
+					$this->setDefaultLocale($value);
 					break;
 				case 'locales':
 					if ($value instanceof Traversable) {

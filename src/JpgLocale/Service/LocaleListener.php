@@ -147,7 +147,7 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
     public function getLocale()
     {
     	if (!empty($this->currentLocale)) return $this->currentLocale;
-    	return $this->adapter->getDefaultLocale()->getLocale();
+    	return $this->adapter->getDefaultLocale();
     }
     
     /**
