@@ -42,6 +42,7 @@ class ListenerFactory implements FactoryInterface
 		$config = isset($config['jpg-locale']) ? $config['jpg-locale'] : array();
 		
 		$service = new LocaleListener( $config );
+		$service->setServiceManager($serviceLocator);
 		return $service;
 	}
 	

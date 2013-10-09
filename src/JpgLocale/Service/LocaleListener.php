@@ -25,14 +25,19 @@
 namespace JpgLocale\Service;
 
 
+
 use JpgLocale\Adapter\AdapterInterface;
 use JpgLocale\Exception;
+use JpgLocale\Event\LocaleEvent;
 use Traversable;
+use Zend\EventManager\EventsCapableInterface;
+use Zend\EventManager\EventManager;
 use Zend\EventManager\EventManagerInterface;
-
 use Zend\EventManager\ListenerAggregateInterface;
+use Zend\ServiceManager\ServiceManager;
+use Zend\ServiceManager\ServiceManagerAwareInterface;
 
-class LocaleListener implements ListenerAggregateInterface 
+class LocaleListener implements EventsCapableInterface, ListenerAggregateInterface, ServiceManagerAwareInterface 
 {
 
 	/**
@@ -48,6 +53,11 @@ class LocaleListener implements ListenerAggregateInterface
      * @var array
      */
     protected $callbacks = array();
+    
+    /**
+     * @var EventManagerInterface
+     */
+    protected $events;
 
     /**
      * The handlers we are using
@@ -64,6 +74,8 @@ class LocaleListener implements ListenerAggregateInterface
     protected $localeDetected = false;
     
     protected $currentLocale;
+    
+    protected $serviceManager;
     
     /**
      * Contructor.
@@ -186,6 +198,27 @@ class LocaleListener implements ListenerAggregateInterface
     	return $this;
     }
     
+    public function setLocale( $locale )
+    {
+    	if (is_string($locale)) {
+    		$locale = $this->adapter->lookup($locale);
+    	}
+    	
+    	// Save it
+    	$this->currentLocale = $locale;
+    	
+    	// Change the translator locale
+    	if ($this->serviceManager->has('Translator')) {
+    		$translator = $this->serviceManager->get('Translator');
+    		$translator->setLocale( $this->currentLocale->getLocale() );
+    	}
+    	
+    	// Trigger an event to warn about the locale change
+    	$localeEvent = new LocaleEvent();
+    	$localeEvent->setLocale($this->currentLocale);
+    	$this->getEventManager()->trigger(LocaleEvent::EVENT_LOCALE_CHANGE, $this, $localeEvent);
+    }
+    
 	/**
 	 * (non-PHPdoc)
 	 * @see Zend\EventManager.ListenerAggregateInterface::attach()
@@ -221,20 +254,50 @@ class LocaleListener implements ListenerAggregateInterface
 			foreach($this->handlers as $handler) {
 				$locale = $handler->detect($e);
 				if (!empty($locale)) {
-					$locale = $this->adapter->lookup($locale);
-					
-					// Store the current locale
-					// This is used by ViewHelpers
-					$this->currentLocale = $locale;
-					
-					$sm = $e->getApplication()->getServiceManager();
-					if ($sm->has('Translator')) {
-						$sm->get('Translator')->setLocale( $locale->getLocale() );
-						break;
-					}
+					$this->setLocale($locale);
+					break;
 				}
 			}
 			
 		}
 	}
+	
+	public function  setServiceManager(ServiceManager $serviceManager)
+	{
+		$this->serviceManager = $serviceManager;
+		return $this;
+	}
+	
+ 	/**
+     * Set the event manager instance used by this module manager.
+     *
+     * @param  EventManagerInterface $events
+     * @return ModuleManager
+     */
+    public function setEventManager(EventManagerInterface $events)
+    {
+        $events->setIdentifiers(array(
+            __CLASS__,
+            get_class($this),
+            'locale_manager',
+        ));
+        $this->events = $events;
+        //$this->attachDefaultListeners();
+        return $this;
+    }
+
+    /**
+     * Retrieve the event manager
+     *
+     * Lazy-loads an EventManager instance if none registered.
+     *
+     * @return EventManagerInterface
+     */
+    public function getEventManager()
+    {
+        if (!$this->events instanceof EventManagerInterface) {
+            $this->setEventManager(new EventManager());
+        }
+        return $this->events;
+    }
 }
