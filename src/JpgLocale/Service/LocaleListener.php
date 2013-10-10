@@ -24,8 +24,6 @@
  */
 namespace JpgLocale\Service;
 
-
-
 use JpgLocale\Adapter\AdapterInterface;
 use JpgLocale\Exception;
 use JpgLocale\Event\LocaleEvent;
@@ -73,19 +71,19 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
      */
     protected $localeDetected = false;
     
+    /**
+     * Current locale
+     * 
+     * @var LocaleInterface
+     */
     protected $currentLocale;
     
-    protected $serviceManager;
-    
     /**
-     * Contructor.
+     * The service manager instance
      * 
-     * @param array|Traversable $config
+     * @var ServiceManager
      */
-    public function __construct( $options = array())
-    {
-    	$this->setOptions( $options );
-    }
+    protected $serviceManager;
     
     /**
      * Set options
@@ -110,44 +108,20 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
 		}	
     }
     
+    /**
+     * Add a handler
+     * 
+     * @param string|array|Traversable\JpgLocale\Handler\HandlerInterface $handler
+     */
     public function addHandler( $handler )
     {
     	if ($handler instanceof \JpgLocale\Handler\HandlerInterface) {
     		$this->handlers[] = $handler;
-    		return $this;
-    	} elseif (is_string($handler)) {
-    		$handler = array('type' => $handler);
-    	} elseif ($handler instanceof Traversable) {
-			$handler = ArrayUtils::iteratorToArray($handler);
-		} elseif (!is_array($handler)) {
-			throw new Exception\InvalidArgumentException('Handler must be an array, string or Traversable object');
-		}
-
-		if (!isset($handler['type'])) {
-			throw new Exception\InvalidArgumentException('Missing "type" option');
-		}
-		
-		if (strpos('\\', $handler['type']) === false) {
-			$handlerObj = 'JpgLocale\\Handler\\' . $handler['type'];
-		} else {
-			$handlerObj = $handler['type'];
-		}
-			
-		$handlerObj = new $handlerObj();
-		
-		if (isset($handler['options'])) {
-			$handlerObj->setOptions( $handler['options'] );			
-		}
-		
-		$this->handlers[] = $handlerObj;
+    	} else {
+    		$this->handlers[] = $this->factoryHandler($handler);
+    	}
 		
     	return $this;
-    }
-    
-    public function getLocale()
-    {
-    	if (!empty($this->currentLocale)) return $this->currentLocale;
-    	return $this->adapter->getDefaultLocale();
     }
     
     /**
@@ -173,31 +147,29 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
     {
     	if ($adapter instanceof \JpgLocale\Adapter\AdapterInterface) {
     		$this->adapter = $adapter;
-    		return $this;
-    	} elseif ($adapter instanceof Traversable) {
-			$adapter = ArrayUtils::iteratorToArray($adapter);
-		} elseif (!is_array($adapter)) {
-			throw new Exception\InvalidArgumentException('Adapter must be an array, Traversable object or an object implementing AdapterInterface');
-		}
+    	} else {
+    		$this->adapter = $this->factoryAdapter($adapter);
+    	}
     	
-		if (!isset($adapter['type'])) {
-			throw new Exception\InvalidArgumentException('Missing "type" option');
-		}
-    	
-    	if (strpos('\\', $adapter['type']) === false) {
-			$adapterObj = 'JpgLocale\\Adapter\\' . $adapter['type'];
-		} else {
-			$adapterObj = $adapter['type'];
-		}
-		$this->adapter = new $adapterObj();
-		
-		if (isset($adapter['options'])) {
-			$this->adapter->setOptions($adapter['options']);
-		}
-		
     	return $this;
     }
     
+    /**
+     * Get the current locale.
+     * 
+     * @return \JpgLocale\Locale\LocaleInterface
+     */
+	public function getLocale()
+    {
+    	if (!empty($this->currentLocale)) return $this->currentLocale;
+    	return $this->adapter->getDefaultLocale();
+    }
+    
+    /**
+     * Set the current locale
+     * 
+     * @param string|\JpgLocale\Locale\LocaleInterface $locale The locale
+     */
     public function setLocale( $locale )
     {
     	if (is_string($locale)) {
@@ -262,6 +234,11 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
 		}
 	}
 	
+	/**
+     * Set service manager
+     *
+     * @param ServiceManager $serviceManager
+     */
 	public function  setServiceManager(ServiceManager $serviceManager)
 	{
 		$this->serviceManager = $serviceManager;
@@ -300,4 +277,88 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
         }
         return $this->events;
     }
+    
+    /**
+	 * Create an adapter from configuration data
+	 * 
+	 * @param array|Traversable $specs  
+	 * @return \JpgLocale\Adapter\AdapterInterface
+     */
+    protected function factoryAdapter($specs)
+	{
+		if ($specs instanceof Traversable) {
+			$specs = ArrayUtils::iteratorToArray($adapter);
+		} elseif (!is_array($specs)) {
+			throw new Exception\InvalidArgumentException('Adapter must be an array or Traversable object');
+		}
+		
+		// Mandatory parameters
+		if (!isset($specs['type'])) {
+			throw new Exception\InvalidArgumentException('Missing "type" option');
+		}
+		
+		// Full adapter type
+		if (strpos('\\', $specs['type']) === false) {
+			$adapter = '\\JpgLocale\\Adapter\\' . $specs['type'];
+		} else {
+			$adapter = $specs['type'];
+		}
+		
+		// Create the adapter
+		$adapter = new $adapter();
+		// Sanity check
+		if (!$adapter instanceof AdapterInterface) {
+			throw new Exception\InvalidArgumentException('Adapter must implement AdapterInterface');
+		}
+		
+		// Options
+		if (isset($specs['options']) && method_exists($adapter, 'setOptions')) {
+			$adapter->setOptions($specs['options']);
+		}
+		
+		// finally return the adapter
+		return $adapter;
+	}
+	
+	/**
+	 * Create a Handler from configuration data
+	 * 
+	 * @param array|string|Traversable $specs  
+	 * @return \JpgLocale\Handler\HandlerInterface
+     */
+	protected function factoryHandler($specs)
+	{
+		if (is_string($specs)) {
+    		$specs = array('type' => $specs);
+    	} elseif ($specs instanceof Traversable) {
+			$specs = ArrayUtils::iteratorToArray($specs);
+		} elseif (!is_array($specs)) {
+			throw new Exception\InvalidArgumentException('Handler must be an array, string or Traversable object');
+		}
+
+		if (!isset($specs['type'])) {
+			throw new Exception\InvalidArgumentException('Missing "type" option');
+		}
+		
+		// Full handler type
+		if (strpos('\\', $specs['type']) === false) {
+			$handler = '\\JpgLocale\\Handler\\' . $specs['type'];
+		} else {
+			$handler = $specs['type'];
+		}
+			
+		// Create the handler object
+		$handler = new $handler();
+		// Sanity check
+		if (!$handler instanceof \JpgLocale\Handler\HandlerInterface) {
+			throw new Exception\InvalidArgumentException('Handler must implement HandlerInterface');
+		}
+		
+		if (isset($specs['options'])) {
+			$handlerObj->setOptions( $handler['options'] );			
+		}
+		
+		// Finally return the handler
+		return $handler;
+	}
 }

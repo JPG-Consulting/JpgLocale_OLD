@@ -26,7 +26,6 @@ namespace JpgLocale\Service;
 
 use Traversable;
 use Zend\ServiceManager\ServiceLocatorInterface;
-
 use Zend\ServiceManager\FactoryInterface;
 
 class ListenerFactory implements FactoryInterface
@@ -41,8 +40,10 @@ class ListenerFactory implements FactoryInterface
 		
 		$config = isset($config['jpg-locale']) ? $config['jpg-locale'] : array();
 		
-		$service = new LocaleListener( $config );
+		$service = new LocaleListener();
 		$service->setServiceManager($serviceLocator);
+		// Options must be set AFTER the service manager
+		$service->setOptions( $config );
 		return $service;
 	}
 	
