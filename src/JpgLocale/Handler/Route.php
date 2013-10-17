@@ -26,7 +26,7 @@ namespace JpgLocale\Handler;
 
 use Zend\Mvc\MvcEvent;
 
-class Subdomain extends AbstractHandler
+class Route extends AbstractHandler
 {
 	public function detect(MvcEvent $e)
 	{

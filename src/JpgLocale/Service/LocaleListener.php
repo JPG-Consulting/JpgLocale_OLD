@@ -197,6 +197,7 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
 	 */
 	public function attach(EventManagerInterface $events)
 	{
+		$this->listeners[] = $events->attach(\Zend\Mvc\MvcEvent::EVENT_ROUTE, array($this, 'detectLocale'), 10000);
 		$this->listeners[] = $events->attach(\Zend\Mvc\MvcEvent::EVENT_ROUTE, array($this, 'detectLocale'), 0);
 		return $this;
 	}

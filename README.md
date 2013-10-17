@@ -19,6 +19,7 @@ Zend Framework 2 module to create multilingual applications
 
 Currently we've got the following handlers:
 
+- `Path` - Looks for the locale in the URL path. This is done automatically so the application routes stay untouched. If no locale is found it will load the default locale so no redirects are needed improving SEO. As an example _http://yourdomain.com/en/_ will load the english locale. 
 - `Query` Looks for a query parameter `locale=` which will define the locale to use. For example _http://yourdomain.com/?locale=en-US_ will load the `en_US` locale.
 - `Subdomain` This one searches in your subdomain. For example: _http://en-us.yourdomain.com/_ will load `en_US` locale.
 
@@ -85,7 +86,5 @@ If `english_name` and/or `native_name` are not set the _INTL_ extension will try
 
 ## TODO
 
-- Route handler
-- cTLD handler
 - Database Adapter
 - Doctrine Adapter
