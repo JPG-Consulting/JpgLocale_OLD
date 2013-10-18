@@ -18,7 +18,12 @@ return array(
 			)
 		),
 		'handlers' => array(
+			//'Route'
+		)
+		/*
+		'handlers' => array(
 			'Query',
 		)
+		*/
 	)
 );

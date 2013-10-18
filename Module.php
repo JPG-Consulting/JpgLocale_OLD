@@ -37,6 +37,7 @@ use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 class Module implements 
 	AutoloaderProviderInterface, 
 	ConfigProviderInterface,
+	RouteProviderInterface,
 	ServiceProviderInterface,
 	ViewHelperProviderInterface
 {
@@ -64,6 +65,15 @@ class Module implements
 	public function getConfig()
 	{
 		return include __DIR__ . '/config/module.config.php';
+	}
+	
+	public function getRouteConfig()
+	{
+		return array(
+			'factories' => array(
+				'I18nSegment' => 'JpgLocale\Service\I18nSegmentFactory'
+			)
+		);
 	}
 	
 	public function getServiceConfig()

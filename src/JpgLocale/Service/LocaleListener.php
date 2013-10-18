@@ -24,6 +24,8 @@
  */
 namespace JpgLocale\Service;
 
+use Zend\I18n\Translator\Translator;
+
 use JpgLocale\Adapter\AdapterInterface;
 use JpgLocale\Exception;
 use JpgLocale\Event\LocaleEvent;
@@ -182,6 +184,9 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
     	// Change the translator locale
     	if ($this->serviceManager->has('Translator')) {
     		$translator = $this->serviceManager->get('Translator');
+    		if (!$translator instanceof Translator) {
+    			// TODO: Throw exception
+    		}
     		$translator->setLocale( $this->currentLocale->getLocale() );
     	}
     	
