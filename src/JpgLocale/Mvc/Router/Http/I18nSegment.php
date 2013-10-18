@@ -190,6 +190,12 @@ class I18nSegment implements RouteInterface, ServiceManagerAwareInterface
         $matchedLength = strlen($matches[0]);
         $matches = array($this->localeParameter => $locale);
         
+        // check we have an active locale
+        $lookup_locale = $this->getLocaleAdapter()->lookup($locale)->getLocale();
+        if (strcasecmp($lookup_locale, $locale)) {
+        	return null;
+        }
+        
         // Got it... Set it!
         $localeService = $this->serviceManager->get('jpglocale_listener');
         $localeService->setLocale($locale);
