@@ -24,6 +24,8 @@
  */
 namespace JpgLocale\Service;
 
+use Zend\Mvc\Router\Http\TranslatorAwareTreeRouteStack;
+
 use Zend\I18n\Translator\Translator;
 
 use JpgLocale\Adapter\AdapterInterface;
@@ -188,6 +190,15 @@ class LocaleListener implements EventsCapableInterface, ListenerAggregateInterfa
     			// TODO: Throw exception
     		}
     		$translator->setLocale( $this->currentLocale->getLocale() );
+    	}
+    	
+    	// ..and the router translator if available
+    	$router = $this->serviceManager->get('Router');
+    	if ($router instanceof TranslatorAwareTreeRouteStack) {
+	    	if ($router->hasTranslator()) {
+	    		$translator = $router->getTranslator();
+	    		$translator->setLocale( $this->currentLocale->getLocale() );
+	    	}
     	}
     	
     	// Trigger an event to warn about the locale change
