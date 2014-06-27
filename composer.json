@@ -8,11 +8,15 @@
     "homepage": "https://github.com/JPG-Consulting/JpgLocale",
     "require": {
         "php": ">=5.3.3",
-        "zendframework/zendframework": "~2.2"
+        "ext-intl": "*",
+         "zendframework/zend-stdlib": "~2.1"
     },
     "autoload": {
         "psr-0": {
             "JpgLocale": "src/"
-        }
+        },
+        "classmap": [
+            "./Module.php"
+        ]
     }
 }
